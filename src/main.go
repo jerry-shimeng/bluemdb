@@ -21,6 +21,7 @@ func main() {
 	fmt.Println("bluemdb is starting...")
 
 	bmcmdparam.CmdParamInit()
+ 
 	//初始化配置
 	bmconfig.ConfigInit(&bmcmdparam.CmdParamsObject)
 	bmlog.LogInit()
@@ -28,7 +29,7 @@ func main() {
 	server := bmnetwork.BmServer{}
 
 	port:= bmconfig.BmConfigObject.Port
-	ip := bmconfig.BmConfigObject.Ip
+	ip := bmconfig.BmConfigObject.Host
 	//启动监听
 	server.Run(port,ip)
 

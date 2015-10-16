@@ -2,8 +2,8 @@ package bmcache
 
 import (
 	"bluem/bmwatch"
-	"errors"
 	"strings"
+	"bluem/bmmodel"
 )
 
 const (
@@ -29,49 +29,71 @@ func CommandInit() {
 //执行接受的命令
 func ExecCommand(content string) string {
 
-	content = strings.Replace(content, "\n", "", -1)
-	//json 解析
-	cmd, key, value, err := convertConmmand(content)
-	if err != nil {
-		return ParamErr
-	}
+	//json解析该字符串
+	model := bmmodel.ConvertStringToCmd(content)
+	if model == nil {
+		return bmmodel.ErrorResult(ParamErr).ToJson()
+	}else {
 
-	//cmd 转换为小写
-	cmd = strings.ToLower(cmd)
+		//cmd 转换为小写
+		cmd := strings.ToLower(model.Cmd)
+		//验证命令是否存在
+		b := existCommand(cmd)
+		if b == true {
+			//执行
+			s := commandMap[cmd](model.Key, model.Value)
 
-	//验证命令是否存在
-	b := existCommand(cmd)
+			return bmmodel.SuccessResult(s).ToJson()
 
-	if b == true {
-		//执行
-		s := commandMap[cmd](key, value)
-		return s
-
-	} else {
-		return CommandNotFound
-	}
-
-	return ParamErr
-}
-//转换命令
-func convertConmmand(s string) (string, string, string, error) {
-	if len(s) == 0 {
-		return "", "", "", errors.New("param is null")
-	}
-	arr := strings.Split(s, " ")
-	arr = removeArraySpace(arr)
-	if len(arr) == 2 || len(arr) == 3 {
-		//处理
-		cmd := arr[0]
-		key := arr[1]
-		value := ""
-		if len(arr) == 3 {
-			value = arr[2]
+		} else {
+			return bmmodel.ErrorResult(CommandNotFound).ToJson()
 		}
-		return cmd, key, value, nil
 	}
-	return "", "", "", errors.New("param is null")
 }
+
+//	content = strings.Replace(content, "\n", "", -1)
+//	//json 解析
+//	cmd, key, value, err := convertConmmand(content)
+//	if err != nil {
+//		return ParamErr
+//	}
+//
+//	//cmd 转换为小写
+//	cmd = strings.ToLower(cmd)
+//
+//	//验证命令是否存在
+//	b := existCommand(cmd)
+//
+//	if b == true {
+//		//执行
+//		s := commandMap[cmd](key, value)
+//		return s
+//
+//	} else {
+//		return CommandNotFound
+//	}
+//
+//	return ParamErr
+//}
+//转换命令
+//func convertConmmand(s string) (string, string, string, error) {
+//	if len(s) == 0 {
+//		return "", "", "", errors.New("param is null")
+//	}
+//	arr := strings.Split(s, " ")
+//	arr = removeArraySpace(arr)
+//	if len(arr) == 2 || len(arr) == 3 {
+//		//处理
+//		cmd := arr[0]
+//		key := arr[1]
+//		value := ""
+//		if len(arr) == 3 {
+//			value = arr[2]
+//		}
+//		return cmd, key, value, nil
+//	}
+//	return "", "", "", errors.New("param is null")
+//}
 //判断该命令是否存在
 func existCommand(key string) bool {
 	r := commandMap[key]
@@ -82,15 +104,15 @@ func existCommand(key string) bool {
 	}
 }
 //移除多余的空格
-func removeArraySpace(arr []string) []string {
-
-	s := make([]string, 0)
-	for _, v := range arr {
-		if v != "" && v != " " {
-			s = append(s, v)
-		}
-	}
-	//fmt.Println(s)
-	return s
-}
+//func removeArraySpace(arr []string) []string {
+//
+//	s := make([]string, 0)
+//	for _, v := range arr {
+//		if v != "" && v != " " {
+//			s = append(s, v)
+//		}
+//	}
+//	//fmt.Println(s)
+//	return s
+//}
 

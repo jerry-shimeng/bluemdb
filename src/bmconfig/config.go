@@ -13,7 +13,7 @@ var BmConfigObject BmConfigModel
 //配置模型
 type BmConfigModel struct {
 	Port int
-	Ip string
+	Host string
 }
 
 func ConfigInit(param *bmcmdparam.CmdParamModel){
@@ -30,17 +30,20 @@ func ConfigInit(param *bmcmdparam.CmdParamModel){
 		}
 	}
 
-
 	if param.Port > 0{
 		BmConfigObject.Port = param.Port
+	}
+	if len(param.Host) >0  {
+		BmConfigObject.Host = param.Host
 	}
 }
 
 //初始化默认的配置模型
 func configModelDefault(){
 	BmConfigObject = BmConfigModel{Port:8090}
-	BmConfigObject.Ip =getIp()
+	BmConfigObject.Host =getIp()
 }
+
 func getIp() string{
 	conn, err := net.Dial("udp", "g.cn:80")
 	if err != nil {
@@ -50,8 +53,16 @@ func getIp() string{
 	defer conn.Close()
 	return strings.Split(conn.LocalAddr().String(), ":")[0]
 }
+
+//配置文件读取配置模块
 func setConfigModel(bm config.ConfigContainer){
 
 	//读取端口号
 	BmConfigObject.Port = bm.DefaultInt("port",8090)
+	//绑定ip
+	BmConfigObject.Host = bm.String("host")
+
+	if len(BmConfigObject.Host) == 0 {
+		BmConfigObject.Host=getIp()
+	}
 }
